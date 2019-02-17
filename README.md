@@ -1,7 +1,10 @@
 # <3^2
-para Fer
+para lola
 
 
+
+## links
+[measuring heart beats in the raspberry pi](https://tutorials-raspberrypi.com/raspberry-pi-heartbeat-pulse-measuring/)
 
  1. https://reprage.com/post/how-to-connect-the-raspberry-pi-to-a-bluetooth-heart-rate-monitor
  2. https://www.bluetooth.com/specifications/gatt/characteristics

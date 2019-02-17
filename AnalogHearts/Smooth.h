@@ -12,10 +12,11 @@ class Smooth{
   public:
     Smooth( );
     Smooth( int n );
-    
+
     void add(int a);
     int getSum();
     int getAverage();
+    bool SERIAL_PRINT = false;
 
   private:
     int numReadings;

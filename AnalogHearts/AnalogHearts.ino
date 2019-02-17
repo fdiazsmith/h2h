@@ -48,17 +48,17 @@ void setup() {
 void loop() {
 
   float h1V = 1- h1.getBeat();
-   // float h1V = 1;
+   float h2V = 1;
    // sm.add(h1V);
-  float h2V = 1- h2.getBeat();
+  // float h2V = 1- h2.getBeat();
   ledValue = (h1V*h2V) * 255;
   // Serial.println(h1V);
   // Serial.print("  |  ");
   // Serial.print(h1V);
   // Serial.print(",");
-  // Serial.print(h2V);
+  // Serial.print(h1.getRaw());
   // Serial.print(",");
-  Serial.println(ledValue);
+  Serial.println(h1.getRaw());
   analogWrite(ledPin, ledValue);
 
 

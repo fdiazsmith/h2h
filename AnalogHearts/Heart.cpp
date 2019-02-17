@@ -20,23 +20,33 @@ float Heart::getBeat(){
 
   normal = constrain((float)( _beat - _min ) / (float)( _max - _min ), 0,1);
 
-  // Serial.print("HR  ");
-  // Serial.print( bb );
-  // Serial.print("\traw  ");
-  // Serial.print(_val);
-  // // Serial.print("    ===smooth  ");
-  // // Serial.print(normal);
-  // Serial.print("\tmax ");
-  // Serial.print(maxRA);
-  // Serial.print("\tmin ");
-  // Serial.println(minRA);
+  if(SERIAL_PRINT){
+    Serial.print("HR  ");
+    Serial.print( bb );
+    Serial.print("\traw  ");
+    Serial.print(_val);
+    Serial.print("    ===smooth  ");
+    Serial.print(normal);
+    Serial.print("\tmax ");
+    Serial.print(maxRA);
+    Serial.print("\tmin ");
+    Serial.println(minRA);
+  }
 
   _lastVal = _val;
+  float out;
+  if(normal<0.5){
+    out = normal*.25;
+  }else{
+    out = normal;
+  }
+
   return normal;
 }
 
 void Heart::read(){
   _val = analogRead( _pin );
+  // _val = (afv * (long)analogRead( _pin ) + (POWER - afv) * _val )/ POWER;
   if( beatDetected() ) {
     maxRA--;
     minRA++;

@@ -21,12 +21,11 @@ class Heart
     float normal;
     Smooth m;
     Smooth signalCheck;
+    bool SERIAL_PRINT = false;
 
     long alpha = 254;
-    long maxRA = 0;
-    long minRA = 1023;
     long foo;
-
+    long afv = 240;
 
   private:
     int _pin;
@@ -35,9 +34,8 @@ class Heart
     long _max = 0;
     long _min = 1023;
     long _lastVal;
-
-    int numReadings = 10;
-
+    long maxRA = 0;
+    long minRA = 1023;
 
     void read();
 
