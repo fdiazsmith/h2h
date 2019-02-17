@@ -1,3 +1,8 @@
+# <3^2
+para Fer
+
+
+
  1. https://reprage.com/post/how-to-connect-the-raspberry-pi-to-a-bluetooth-heart-rate-monitor
  2. https://www.bluetooth.com/specifications/gatt/characteristics
  3. https://nob.ro/post/polar_h10_ubuntu/
@@ -11,4 +16,3 @@
  11. https://stackoverflow.com/questions/32749194/differences-between-cbuuid-and-nsuuid-in-swift
  12 https://github.com/adafruit/Adafruit_Python_BluefruitLE/blob/master/Adafruit_BluefruitLE/corebluetooth/objc_helpers.py
  13. https://mbientlab.com/tutorials/LPython2.html
-

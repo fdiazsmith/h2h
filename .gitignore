@@ -1,1 +1,13 @@
+#mac
 **./DS_Store
+
+# Pocessing
+**/build
+
+**/*.vlw
+
+# Arduino
+**/*.eep
+**/*.bin
+**/*.elf
+**/*.hex
