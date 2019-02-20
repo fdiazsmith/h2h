@@ -4,6 +4,7 @@ import random
 import time
 import board
 import neopixel
+import copy
 
 from pulsesensor import Pulsesensor
 from pythonosc import osc_message_builder
@@ -22,7 +23,7 @@ p = Pulsesensor()
 p.startAsyncBPM()
 
 ## setup neo pixels
-pixels = neopixel.NeoPixel(board.D18, 11)
+pixels = neopixel.NeoPixel(board.D18, 8)
 
 START_TIME = time.time()
 slowPrint = True
@@ -33,9 +34,10 @@ printInterval = 3
 -[ ]
 
 """
-
+redX = 0
 def loop():
     global slowPrint
+    global redX
     runtime = (time.time() - START_TIME);
 
 
@@ -44,10 +46,20 @@ def loop():
         # time.sleep(1)
     bpm = p.BPM
     if bpm > 0:
+        sendHRM = map(p.normal, p.ampMin, p.ampMax, 0.1, .9)
         client.send_message("/hrm", p.normal )
-        # print("BPM: %d" % bpm)
-        # pixels.fill((20,22,10))
+        print("BPM: %d " % bpm , "Normal: ", p.normal )
+        # copyhrm = copy.deepcopy(sendHRM)
+        # redX = int(map(copyhrm,0,1,0,255))
+        #
+        # if redX < 0:
+        #     redX = 0
+        # elif redX > 255:
+        #     redX = 255;
+        #
+        # pixels.fill((redX,5,5))
         # pixels.show()
+
     else:
         if runtime%printInterval <= 0.1 and slowPrint:
             slowPrint = False
@@ -57,8 +69,12 @@ def loop():
 
 def exit():
     print("\nAdios Corazon\n")
+    pixels.fill((0,0,0))
+    pixels.show()
     p.stopAsyncBPM()
 
+def map( x,  in_min,  in_max,  out_min,  out_max):
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 
 ################################################################################
 if __name__ == "__main__":

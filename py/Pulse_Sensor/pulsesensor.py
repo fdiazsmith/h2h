@@ -20,7 +20,9 @@ class Pulsesensor:
         self.channel = channel
         self.BPM = 0
         self.rawSignal = 0
-        self.amplitude = 0;
+        self.ampNormal = 0
+        self.ampMax = 0
+        self.ampMix = 0
         # self.adc = MCP3008(bus, device)
 
         # create the spi bus
@@ -47,7 +49,7 @@ class Pulsesensor:
         P = HALF_ANALOG_INPUT                 # used to find peak in pulse wave, seeded
         T = HALF_ANALOG_INPUT                 # used to find trough in pulse wave, seeded
         thresh = THRESHOLD    #525        # used to find instant moment of heart beat, seeded
-        self.amplitude = FULL_ANALOG_INPUT/ INITAIAL_AMP_RATIO              # used to hold amplitude of pulse waveform, seeded
+        amp = FULL_ANALOG_INPUT/ INITAIAL_AMP_RATIO              # used to hold amplitude of pulse waveform, seeded
         firstBeat = True        # used to seed rate array so we startup with reasonable BPM
         secondBeat = False      # used to seed rate array so we startup with reasonable BPM
 
@@ -72,10 +74,12 @@ class Pulsesensor:
                 if self.rawSignal < T:                          # T is the trough
                     # print(" < T", T)
                     T = self.rawSignal                          # keep track of lowest point in pulse wave
+                    self.ampMin = T/0xFFFF
 
             if self.rawSignal > thresh and self.rawSignal > P:
                 # print("P>", P)
                 P = self.rawSignal
+                self.ampMax = P/0xFFFF
             # print("N", N)
             # signal surges up in value every time there is a pulse
             if N > TIME_THRESHOLD:                                 # avoid high frequency noise
@@ -105,8 +109,9 @@ class Pulsesensor:
 
             if self.rawSignal < thresh and Pulse == True:       # when the values are going down, the beat is over
                 Pulse = False                           # reset the Pulse flag so we can do it again
-                self.amplitude = P - T                             # get amplitude of the pulse wave
-                thresh = self.amplitude/2 + T                      # set thresh at 50% of the amplitude
+                amp = P - T
+                self.ampNormal = amp/0xFFFF      # get amplitude of the pulse wave
+                thresh = amp/2 + T                # set thresh at 50% of the amplitude
                 P = thresh                              # reset these for next time
                 T = thresh
 
