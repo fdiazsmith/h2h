@@ -19,3 +19,4 @@ para lola
  11. https://stackoverflow.com/questions/32749194/differences-between-cbuuid-and-nsuuid-in-swift
  12 https://github.com/adafruit/Adafruit_Python_BluefruitLE/blob/master/Adafruit_BluefruitLE/corebluetooth/objc_helpers.py
  13. https://mbientlab.com/tutorials/LPython2.html
+- [polar h7 rr](https://github.com/oroce/polar-h7-rr)
