@@ -58,6 +58,7 @@ class Pulsesensor:
         while not self.thread.stopped:
             # self.rawSignal = self.adc.read(self.channel)
             self.rawSignal = self.chan.value
+            self.normal = self.rawSignal/0xFFFF
             currentTime = int(time.time()*1000)
 
             sampleCounter += currentTime - lastTime
