@@ -11,7 +11,3 @@
 **/*.bin
 **/*.elf
 **/*.hex
-
-## python
-__pycache__
-**/.AppleDouble/
