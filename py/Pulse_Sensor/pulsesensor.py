@@ -22,13 +22,12 @@ class Pulsesensor:
         self.rawSignal = 0
         self.ampNormal = 0
         self.ampMax = 0
-        self.ampMix = 0
+        self.ampMin = 0
         self.normal = 0
-        self.avrg = [THRESHOLD/0xFFFF] * 1    # keep a long running avrg
-        self.readIndex = 0        # start of the averaging index
-        self.avrgTotal = 0
         self.thresh = 0
+        self.led = 0
         # self.adc = MCP3008(bus, device)
+
 
         # create the spi bus
         spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
@@ -62,12 +61,22 @@ class Pulsesensor:
         Pulse = False           # "True" when User's live heartbeat is detected. "False" when not a "live beat".
         lastTime = int(time.time()*1000)
 
+        longAverage = Averager(1000)
+        shortAverage = Averager(20)
+        minAverage = Averager(20)
+        maxAverage = Averager(20)
 
         while not self.thread.stopped:
             # self.rawSignal = self.adc.read(self.channel)
             self.rawSignal = self.chan.value
-            self.normal = self.rawSignal/0xFFFF
-            self.calcAverage()                  # only calculate average when we have a beat
+            self.normal = self.rawSignal/FULL_ANALOG_INPUT
+            # self.calcAverage()                        # only calculate average when we have a beat
+            longAverage.add(self.normal)
+            self.longAverage = longAverage.getAvrg()
+
+            shortAverage.add(self.normal)
+            self.setLed(shortAverage.getAvrg())
+            # self.led = shortAverage.getAvrg()
             currentTime = int(time.time()*1000)
 
             sampleCounter += currentTime - lastTime
@@ -79,15 +88,15 @@ class Pulsesensor:
             if self.rawSignal < self.thresh and N > (IBI/5.0)*3:     # avoid dichrotic noise by waiting 3/5 of last IBI
                 # print("avoiding noise", self.rawSignal, N )
                 if self.rawSignal < T:                          # T is the trough
-                    # print(" < T", T)
                     T = self.rawSignal                          # keep track of lowest point in pulse wave
-                    self.ampMin = T/0xFFFF
+                    minAverage.add(T/FULL_ANALOG_INPUT)
+                    self.ampMin = minAverage.getAvrg()
 
             if self.rawSignal > self.thresh and self.rawSignal > P:
-                # print("P>", P)
                 P = self.rawSignal
-                self.ampMax = P/0xFFFF
-            # print("N", N)
+                maxAverage.add(P/FULL_ANALOG_INPUT)
+                self.ampMax = maxAverage.getAvrg()
+
             # signal surges up in value every time there is a pulse
             if N > TIME_THRESHOLD:                                 # avoid high frequency noise
                 # print("N", N)
@@ -118,7 +127,7 @@ class Pulsesensor:
             if self.rawSignal < self.thresh and Pulse == True:       # when the values are going down, the beat is over
                 Pulse = False                           # reset the Pulse flag so we can do it again
                 amp = P - T
-                self.ampNormal = amp/0xFFFF      # get amplitude of the pulse wave
+                self.ampNormal = amp/FULL_ANALOG_INPUT      # get amplitude of the pulse wave
                 self.thresh = amp/2 + T                # set self.thresh at 50% of the amplitude
                 P = self.thresh                              # reset these for next time
                 T = self.thresh
@@ -148,16 +157,45 @@ class Pulsesensor:
         self.BPM = 0
         return
 
-    def calcAverage(self):
-        self.avrgTotal = self.avrgTotal - self.avrg[self.readIndex]
+    def setLed(self, val):
+        _led = (val - self.ampMin) * 4
 
-        self.avrg[self.readIndex] = self.normal
+        if _led < 0:
+            _led = 0
+        elif _led > 1:
+            _led = 1
 
-        self.avrgTotal = self.avrgTotal + self.avrg[self.readIndex]
+        self.led = _led
 
-        self.readIndex += 1
 
-        if self.readIndex >= len(self.avrg):
-            self.readIndex = 0
+    def map( x,  in_min,  in_max,  out_min,  out_max):
+      return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 
-        self.average = self.avrgTotal / len(self.avrg)
+
+
+class Averager:
+    def __init__(self, size = 10, initVal = 0):
+        self.__size = size
+        self.__avrg = [initVal] * self.__size    # keep a long running avrg
+        self.__readIndex = 0        # start of the averaging index
+        self.avrgTotal = 0
+        # print("\n\t Averager size: %d \n" % self.__size)
+
+    def add(self, value , debug = False ):
+        self.avrgTotal = self.avrgTotal - self.__avrg[self.__readIndex]
+
+        self.__avrg[self.__readIndex] = value
+
+        self.avrgTotal = self.avrgTotal + self.__avrg[self.__readIndex]
+
+        self.__readIndex += 1
+
+        if self.__readIndex >= self.__size:
+            self.__readIndex = 0
+
+        # self.longAverage = self.avrgTotal / self.__size
+        if debug:
+            print("size: ", self.__size, "  index: ", self.__readIndex,  "   self.avrgTotal: ",self.avrgTotal,   "  average: ", self.longAverage)
+
+    def getAvrg(self) -> float:
+        return self.avrgTotal / self.__size

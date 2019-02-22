@@ -78,27 +78,27 @@ def loop():
     if bpm > 0:
         bundle = osc_bundle_builder.OscBundleBuilder(osc_bundle_builder.IMMEDIATELY)
         msg = osc_message_builder.OscMessageBuilder(address="/hrm")
-        sendHRM = (p.normal - 0.43)*4
-        # sendHRM = map(p.normal, p.ampMin, p.ampMax, 0.1, .9)
-        # copyhrm = copy.deepcopy(sendHRM)
-        redX = int(map(sendHRM,0,1,0,100))
-        minRA = (alpha * redX + (POWER - alpha) * minRA )/ POWER;
-        if redX < 0:
-            redX = 0
-        elif redX > 100:
-            redX = 100;
 
-        # pixels.fill((redX,0,0))
-        # pixels.show()
-        # pwm.ChangeDutyCycle(minRA)
-        msg.add_arg(sendHRM)
+        msg.add_arg(p.normal)
         bundle.add_content(msg.build())
-        msg.add_arg(p.average)
+        msg.add_arg(p.ampMin)
         bundle.add_content(msg.build())
-        
-        # dump(bundle)
+        msg.add_arg(p.led)
+        bundle.add_content(msg.build())
+        msg.add_arg(p.longAverage)
+        bundle.add_content(msg.build())
+
         client.send(bundle.build())
-        print("BPM: %d " % bpm , "Normal: ",p.average ,"  Thresh: ", p.thresh/0xFFFF )
+
+        pixels.fill((int(p.led*255),0,0))
+        pixels.show()
+
+        # print("normal: ", p.normal, "  longAverage: ", p.longAverage)
+        # if runtime%1 <= 0.1 and slowPrint:
+        #     slowPrint = False
+        #     print("BPM: %d " % bpm )
+        # elif runtime%1 > 0.1:
+        #     slowPrint = True
 
     else:
         if runtime%printInterval <= 0.1 and slowPrint:
