@@ -5,6 +5,7 @@ import time
 import board
 import neopixel
 import copy
+import RPi.GPIO as GPIO     # Importing RPi library to use the GPIO pins
 
 from pulsesensor import Pulsesensor
 from pythonosc import osc_message_builder
@@ -24,41 +25,53 @@ p.startAsyncBPM()
 
 ## setup neo pixels
 pixels = neopixel.NeoPixel(board.D18, 8)
+## Regular led
+led_pin = 21            # Initializing the GPIO pin 21 for LED
+hrm_pin = 26
+
+GPIO.setmode(GPIO.BCM)          # We are using the BCM pin numbering
+GPIO.setup(led_pin, GPIO.OUT)   # Declaring pin 21 as output pin
+
+GPIO.setup(hrm_pin, GPIO.IN)
+
+pwm = GPIO.PWM(led_pin, 100)    # Created a PWM object
+pwm.start(0)
+###
 
 START_TIME = time.time()
 slowPrint = True
 printInterval = 3
-"""
--[x] ocs sendign
--[ ] neo pixel
--[ ]
 
-"""
+
 redX = 0
+minRA = 0
 def loop():
     global slowPrint
     global redX
+    global minRA
     runtime = (time.time() - START_TIME);
-
-
+    alpha = 255
+    POWER = 255
 
     # client.send_message("/hrm", random.random() )
         # time.sleep(1)
     bpm = p.BPM
     if bpm > 0:
-        sendHRM = map(p.normal, p.ampMin, p.ampMax, 0.1, .9)
-        client.send_message("/hrm", p.normal )
-        print("BPM: %d " % bpm , "Normal: ", p.normal )
+        sendHRM = (p.normal - 0.43)*4
+        # sendHRM = map(p.normal, p.ampMin, p.ampMax, 0.1, .9)
         # copyhrm = copy.deepcopy(sendHRM)
-        # redX = int(map(copyhrm,0,1,0,255))
-        #
-        # if redX < 0:
-        #     redX = 0
-        # elif redX > 255:
-        #     redX = 255;
-        #
-        # pixels.fill((redX,5,5))
+        redX = int(map(sendHRM,0,1,0,100))
+        minRA = (alpha * redX + (POWER - alpha) * minRA )/ POWER;
+        if redX < 0:
+            redX = 0
+        elif redX > 100:
+            redX = 100;
+
+        # pixels.fill((redX,0,0))
         # pixels.show()
+        pwm.ChangeDutyCycle(minRA)
+        client.send_message("/hrm", minRA/255 )
+        print("BPM: %d " % bpm , "Normal: ", minRA/255 )
 
     else:
         if runtime%printInterval <= 0.1 and slowPrint:
