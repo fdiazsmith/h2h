@@ -11,3 +11,8 @@
 **/*.bin
 **/*.elf
 **/*.hex
+
+## Apple remote folder stuff
+**/.AppleDouble/
+**/__pycache__/
+
