@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import time
 import argparse
 import random
@@ -9,15 +11,30 @@ import RPi.GPIO as GPIO     # Importing RPi library to use the GPIO pins
 
 from pulsesensor import Pulsesensor
 from pythonosc import osc_message_builder
+from pythonosc import osc_bundle_builder
 from pythonosc import udp_client
 
 
 ## set up OSC
 parser = argparse.ArgumentParser()
-parser.add_argument("--ip", default="172.20.10.4", help="The ip of the OSC server")
+parser.add_argument("--ip", default="10.222.201.220", help="The ip of the OSC server")
 parser.add_argument("--port", type=int, default=5005, help="The port the OSC server is listening on")
 args = parser.parse_args()
-client = udp_client.SimpleUDPClient(args.ip, args.port)
+# client = udp_client.SimpleUDPClient(args.ip, args.port)
+client = udp_client.UDPClient(args.ip, args.port)
+
+
+# msg.add_arg(4.0)
+# # Add 4 messages in the bundle, each with more arguments.
+# bundle.add_content(msg.build())
+# print("\n\nargs\n", bundle.add_content)
+# print("\n\n")
+
+
+
+# bundle = bundle.build()
+# You can now send it via a client as described in other examples.
+
 
 ## set up pulse sensor
 p = Pulsesensor()
@@ -49,14 +66,18 @@ def loop():
     global slowPrint
     global redX
     global minRA
+
+
     runtime = (time.time() - START_TIME);
     alpha = 255
     POWER = 255
 
     # client.send_message("/hrm", random.random() )
-        # time.sleep(1)
+        # time.sleep(.33)
     bpm = p.BPM
     if bpm > 0:
+        bundle = osc_bundle_builder.OscBundleBuilder(osc_bundle_builder.IMMEDIATELY)
+        msg = osc_message_builder.OscMessageBuilder(address="/hrm")
         sendHRM = (p.normal - 0.43)*4
         # sendHRM = map(p.normal, p.ampMin, p.ampMax, 0.1, .9)
         # copyhrm = copy.deepcopy(sendHRM)
@@ -69,9 +90,15 @@ def loop():
 
         # pixels.fill((redX,0,0))
         # pixels.show()
-        pwm.ChangeDutyCycle(minRA)
-        client.send_message("/hrm", minRA/255 )
-        print("BPM: %d " % bpm , "Normal: ", minRA/255 )
+        # pwm.ChangeDutyCycle(minRA)
+        msg.add_arg(sendHRM)
+        bundle.add_content(msg.build())
+        msg.add_arg(p.average)
+        bundle.add_content(msg.build())
+        
+        # dump(bundle)
+        client.send(bundle.build())
+        print("BPM: %d " % bpm , "Normal: ",p.average ,"  Thresh: ", p.thresh/0xFFFF )
 
     else:
         if runtime%printInterval <= 0.1 and slowPrint:
@@ -81,13 +108,18 @@ def loop():
             slowPrint = True
 
 def exit():
-    print("\nAdios Corazon\n")
+    print("\n\n\n<3 Adios Corazon\n")
     pixels.fill((0,0,0))
     pixels.show()
     p.stopAsyncBPM()
 
 def map( x,  in_min,  in_max,  out_min,  out_max):
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+
+def dump(obj):
+   for attr in dir(obj):
+       if hasattr( obj, attr ):
+           print( "obj.%s = %s" % (attr, getattr(obj, attr)))
 
 ################################################################################
 if __name__ == "__main__":
@@ -97,3 +129,19 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         exit()
         pass
+
+
+"""
+        |\    /|
+        | \  / |
+   _____|__\/__|____
+   |    |  /\  |    |
+   |    | /  \ |    |
+   |    | \  / |    |
+   |____|__\/__|____|
+        |  /\  |
+        | /  \ |
+        |/    \|
+
+
+"""

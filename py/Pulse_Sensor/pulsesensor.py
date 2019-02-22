@@ -9,8 +9,8 @@ import board
 import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
 
-FULL_ANALOG_INPUT = 0xFFFF #65535 #1023
-HALF_ANALOG_INPUT = 32767 #512
+FULL_ANALOG_INPUT = 0xFFFF #65535 #1023 (0x3FF)
+HALF_ANALOG_INPUT = 0x7FFF #512 (0x1FF)
 TIME_THRESHOLD = 250
 INITAIAL_AMP_RATIO = 10
 THRESHOLD = 35000 #525
@@ -23,6 +23,11 @@ class Pulsesensor:
         self.ampNormal = 0
         self.ampMax = 0
         self.ampMix = 0
+        self.normal = 0
+        self.avrg = [THRESHOLD/0xFFFF] * 1    # keep a long running avrg
+        self.readIndex = 0        # start of the averaging index
+        self.avrgTotal = 0
+        self.thresh = 0
         # self.adc = MCP3008(bus, device)
 
         # create the spi bus
@@ -48,7 +53,7 @@ class Pulsesensor:
         lastBeatTime = 0        # used to find IBI
         P = HALF_ANALOG_INPUT                 # used to find peak in pulse wave, seeded
         T = HALF_ANALOG_INPUT                 # used to find trough in pulse wave, seeded
-        thresh = THRESHOLD    #525        # used to find instant moment of heart beat, seeded
+        self.thresh = THRESHOLD    #525        # used to find instant moment of heart beat, seeded
         amp = FULL_ANALOG_INPUT/ INITAIAL_AMP_RATIO              # used to hold amplitude of pulse waveform, seeded
         firstBeat = True        # used to seed rate array so we startup with reasonable BPM
         secondBeat = False      # used to seed rate array so we startup with reasonable BPM
@@ -57,10 +62,12 @@ class Pulsesensor:
         Pulse = False           # "True" when User's live heartbeat is detected. "False" when not a "live beat".
         lastTime = int(time.time()*1000)
 
+
         while not self.thread.stopped:
             # self.rawSignal = self.adc.read(self.channel)
             self.rawSignal = self.chan.value
             self.normal = self.rawSignal/0xFFFF
+            self.calcAverage()                  # only calculate average when we have a beat
             currentTime = int(time.time()*1000)
 
             sampleCounter += currentTime - lastTime
@@ -69,14 +76,14 @@ class Pulsesensor:
             N = sampleCounter - lastBeatTime
 
             # find the peak and trough of the pulse wave
-            if self.rawSignal < thresh and N > (IBI/5.0)*3:     # avoid dichrotic noise by waiting 3/5 of last IBI
+            if self.rawSignal < self.thresh and N > (IBI/5.0)*3:     # avoid dichrotic noise by waiting 3/5 of last IBI
                 # print("avoiding noise", self.rawSignal, N )
                 if self.rawSignal < T:                          # T is the trough
                     # print(" < T", T)
                     T = self.rawSignal                          # keep track of lowest point in pulse wave
                     self.ampMin = T/0xFFFF
 
-            if self.rawSignal > thresh and self.rawSignal > P:
+            if self.rawSignal > self.thresh and self.rawSignal > P:
                 # print("P>", P)
                 P = self.rawSignal
                 self.ampMax = P/0xFFFF
@@ -84,7 +91,8 @@ class Pulsesensor:
             # signal surges up in value every time there is a pulse
             if N > TIME_THRESHOLD:                                 # avoid high frequency noise
                 # print("N", N)
-                if self.rawSignal > thresh and Pulse == False and N > (IBI/5.0)*3:
+                if self.rawSignal > self.thresh and Pulse == False and N > (IBI/5.0)*3:
+
                     Pulse = True                        # set the Pulse flag when we think there is a pulse
                     IBI = sampleCounter - lastBeatTime  # measure time between beats in mS
                     lastBeatTime = sampleCounter        # keep track of time for next pulse
@@ -107,16 +115,16 @@ class Pulsesensor:
                     runningTotal /= len(rate)           # average the IBI values
                     self.BPM = 60000/runningTotal       # how many beats can fit into a minute? that's BPM!
 
-            if self.rawSignal < thresh and Pulse == True:       # when the values are going down, the beat is over
+            if self.rawSignal < self.thresh and Pulse == True:       # when the values are going down, the beat is over
                 Pulse = False                           # reset the Pulse flag so we can do it again
                 amp = P - T
                 self.ampNormal = amp/0xFFFF      # get amplitude of the pulse wave
-                thresh = amp/2 + T                # set thresh at 50% of the amplitude
-                P = thresh                              # reset these for next time
-                T = thresh
+                self.thresh = amp/2 + T                # set self.thresh at 50% of the amplitude
+                P = self.thresh                              # reset these for next time
+                T = self.thresh
 
             if N > 2500:                                # if 2.5 seconds go by without a beat
-                thresh = HALF_ANALOG_INPUT                            # set thresh default
+                self.thresh = HALF_ANALOG_INPUT                            # set self.thresh default
                 P = HALF_ANALOG_INPUT                                 # set P default
                 T = HALF_ANALOG_INPUT                                 # set T default
                 lastBeatTime = sampleCounter            # bring the lastBeatTime up to date
@@ -139,3 +147,17 @@ class Pulsesensor:
         self.thread.stopped = True
         self.BPM = 0
         return
+
+    def calcAverage(self):
+        self.avrgTotal = self.avrgTotal - self.avrg[self.readIndex]
+
+        self.avrg[self.readIndex] = self.normal
+
+        self.avrgTotal = self.avrgTotal + self.avrg[self.readIndex]
+
+        self.readIndex += 1
+
+        if self.readIndex >= len(self.avrg):
+            self.readIndex = 0
+
+        self.average = self.avrgTotal / len(self.avrg)
