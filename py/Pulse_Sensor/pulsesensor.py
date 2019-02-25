@@ -39,7 +39,7 @@ class Pulsesensor:
         mcp = MCP.MCP3008(spi, cs)
 
         # create an analog input channel on pin 0
-        self.chan = AnalogIn(mcp, MCP.P0)
+        self.chan = AnalogIn(mcp, MCP.P7)
 
     def getBPMLoop(self):
         global HALF_ANALOG_INPUT

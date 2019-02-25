@@ -17,7 +17,7 @@ from pythonosc import udp_client
 
 ## set up OSC
 parser = argparse.ArgumentParser()
-parser.add_argument("--ip", default="10.222.201.220", help="The ip of the OSC server")
+parser.add_argument("--ip", default="172.20.10.4", help="The ip of the OSC server")
 parser.add_argument("--port", type=int, default=5005, help="The port the OSC server is listening on")
 args = parser.parse_args()
 # client = udp_client.SimpleUDPClient(args.ip, args.port)
@@ -94,11 +94,11 @@ def loop():
         pixels.show()
 
         # print("normal: ", p.normal, "  longAverage: ", p.longAverage)
-        # if runtime%1 <= 0.1 and slowPrint:
-        #     slowPrint = False
-        #     print("BPM: %d " % bpm )
-        # elif runtime%1 > 0.1:
-        #     slowPrint = True
+        if runtime%1 <= 0.1 and slowPrint:
+            slowPrint = False
+            print("BPM: %d " % bpm )
+        elif runtime%1 > 0.1:
+            slowPrint = True
 
     else:
         if runtime%printInterval <= 0.1 and slowPrint:
