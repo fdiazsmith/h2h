@@ -20,3 +20,8 @@ para lola
  12 https://github.com/adafruit/Adafruit_Python_BluefruitLE/blob/master/Adafruit_BluefruitLE/corebluetooth/objc_helpers.py
  13. https://mbientlab.com/tutorials/LPython2.html
 - [polar h7 rr](https://github.com/oroce/polar-h7-rr)
+
+polar uuid : 00:22:D0:8D:7D:98
+
+//docs
+https://github.com/getsenic/gatt-python
