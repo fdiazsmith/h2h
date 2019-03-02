@@ -21,7 +21,7 @@ class Smooth{
   private:
     int numReadings;
     // find how to instantiate this array with different numbers
-    int readings[10];      // the readings from the analog input
+    int readings[10];               // the readings from the analog input
     int readIndex = 0;              // the index of the current reading
     int total = 0;                  // the running total
     int average = 0;                // the average
