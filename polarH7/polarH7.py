@@ -1,3 +1,4 @@
+#https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.heart_rate_measurement.xml
 import gatt
 from datetime import datetime
 import argparse
@@ -15,9 +16,8 @@ parser.add_argument("--ip", default="172.20.10.4", help="The ip of the OSC serve
 parser.add_argument("--port", type=int, default=5005, help="The port the OSC server is listening on")
 args = parser.parse_args()
 
-# client = udp_client.SimpleUDPClient(args.ip, args.port)
 client = udp_client.UDPClient(args.ip, args.port)
-
+# client = udp_client.SimpleUDPClient(args.ip, args.port)
 
 
 class AnyDevice(gatt.Device):
@@ -72,7 +72,10 @@ class AnyDevice(gatt.Device):
             print("Battery level:", value[0])
         elif characteristic.uuid == self._UUID_CHARACTER_HR_MEASURE:
             # TODO: There is much more information. See example code.
-            print("HR Rec:", value[1])
+            print("\t\t\traw ", value )
+            print("HR Rec:", value[1], "rr?: ", value[2] )
+            for v in value:
+                print("\t ", '{:f}'.format(v) )
             self.send(value[1])
         else:
             print("Unrecognised value:", value, "from:", characteristic.uuid,
@@ -81,25 +84,61 @@ class AnyDevice(gatt.Device):
 
     def send(self, val):
         ## osc stuff
-        pass
+        # client.send_message("/hrm", val)
+        bundle = osc_bundle_builder.OscBundleBuilder(osc_bundle_builder.IMMEDIATELY)
+        msg = osc_message_builder.OscMessageBuilder(address="/hrm")
+
+
+        msg.add_arg(val)
+        bundle.add_content(msg.build())
+
+        client.send(bundle.build())
+
 
 device = AnyDevice(mac_address='00:22:D0:8D:7D:98', manager=manager)
 device.connect()
 
-manager.run()
+
+
+callOnce = True
+########################################################################################
 
 def loop():
-    # I guess  not needed
-    pass
+    global callOnce
+
+    if callOnce:
+        print("call once")
+        manager.run()
+        callOnce = False
 
 def exit():
     print("\n\n\n<3 Adios Corazon\n")
     manager.stop()
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+########################################################################################
 if __name__ == "__main__":
     try:
         while True:
             loop()
+            # pass
     except KeyboardInterrupt:
         exit()
         pass
