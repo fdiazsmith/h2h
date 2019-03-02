@@ -61,7 +61,8 @@ class fHR {
    * sets the inter beat interval, based on current beats per minute received
    */
   void setBPM( int _bpm) {
-    bpm = _bpm;
+    
+    bpm =  _bpm;
     ibi = MINUTE/bpm;
   }
 
@@ -124,7 +125,7 @@ class fHR {
     if( currentBeatTimer > IBI ){
       lastBeat  = millis();
       IBI = getIBI();
-      println(IBI);
+      // println(IBI);
 
     }
 

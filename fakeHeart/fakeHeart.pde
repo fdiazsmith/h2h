@@ -70,12 +70,10 @@ void draw( ) {
 void oscEvent(OscMessage theOscMessage) {
   String addrPattern = theOscMessage.addrPattern();
 
-
   // Analogue input values
   if (addrPattern.equals(ADDRESS)) {
-    // println(addrPattern);
 
-      // fhr.analogInputs[i] = theOscMessage.get(i).floatValue();
+    fhr.setBPM(theOscMessage.get(0).intValue());  // fhr.analogInputs[i] = theOscMessage.get(i).floatValue();
 
   }
   else {
