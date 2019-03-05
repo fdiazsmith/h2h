@@ -199,3 +199,24 @@ class Averager:
 
     def getAvrg(self) -> float:
         return self.avrgTotal / self.__size
+
+
+
+
+"""
+   *
+   * @webref shape:curves
+   * @param a coordinate of first point on the curve
+   * @param b coordinate of first control point
+   * @param c coordinate of second control point
+   * @param d coordinate of second point on the curve
+   * @param t value between 0 and 1
+   * @see PGraphics#bezier(float, float, float, float, float, float, float, float, float, float, float, float)
+   * @see PGraphics#bezierVertex(float, float, float, float, float, float)
+   * @see PGraphics#curvePoint(float, float, float, float, float)
+   */
+  public float bezierPoint(float a, float b, float c, float d, float t) {
+    float t1 = 1.0f - t;
+    return (a*t1 + 3*b*t)*t1*t1 + (3*c*t1 + d*t)*t*t;
+}
+"""
