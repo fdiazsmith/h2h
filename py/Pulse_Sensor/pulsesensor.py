@@ -26,6 +26,7 @@ class Pulsesensor:
         self.normal = 0
         self.thresh = 0
         self.led = 0
+        self.lastBeatTime = 0
         # self.adc = MCP3008(bus, device)
 
 
@@ -39,7 +40,7 @@ class Pulsesensor:
         mcp = MCP.MCP3008(spi, cs)
 
         # create an analog input channel on pin 0
-        self.chan = AnalogIn(mcp, MCP.P7)
+        self.chan = AnalogIn( mcp, getattr( MCP, "P%s"%channel ) )
 
     def getBPMLoop(self):
         global HALF_ANALOG_INPUT
@@ -49,7 +50,7 @@ class Pulsesensor:
         # init variables
         rate = [0] * 10         # array to hold last 10 IBI values
         sampleCounter = 0       # used to determine pulse timing
-        lastBeatTime = 0        # used to find IBI
+        self.lastBeatTime = 0        # used to find IBI
         P = HALF_ANALOG_INPUT                 # used to find peak in pulse wave, seeded
         T = HALF_ANALOG_INPUT                 # used to find trough in pulse wave, seeded
         self.thresh = THRESHOLD    #525        # used to find instant moment of heart beat, seeded
@@ -82,7 +83,7 @@ class Pulsesensor:
             sampleCounter += currentTime - lastTime
             lastTime = currentTime
 
-            N = sampleCounter - lastBeatTime
+            N = sampleCounter - self.lastBeatTime
 
             # find the peak and trough of the pulse wave
             if self.rawSignal < self.thresh and N > (IBI/5.0)*3:     # avoid dichrotic noise by waiting 3/5 of last IBI
@@ -103,8 +104,8 @@ class Pulsesensor:
                 if self.rawSignal > self.thresh and Pulse == False and N > (IBI/5.0)*3:
 
                     Pulse = True                        # set the Pulse flag when we think there is a pulse
-                    IBI = sampleCounter - lastBeatTime  # measure time between beats in mS
-                    lastBeatTime = sampleCounter        # keep track of time for next pulse
+                    IBI = sampleCounter - self.lastBeatTime  # measure time between beats in mS
+                    self.lastBeatTime = sampleCounter        # keep track of time for next pulse
 
                     if secondBeat:                      # if this is the second beat, if secondBeat == TRUE
                         secondBeat = False;             # clear secondBeat flag
@@ -136,7 +137,7 @@ class Pulsesensor:
                 self.thresh = HALF_ANALOG_INPUT                            # set self.thresh default
                 P = HALF_ANALOG_INPUT                                 # set P default
                 T = HALF_ANALOG_INPUT                                 # set T default
-                lastBeatTime = sampleCounter            # bring the lastBeatTime up to date
+                self.lastBeatTime = sampleCounter            # bring the self.lastBeatTime up to date
                 firstBeat = True                        # set these to avoid noise
                 secondBeat = False                      # when we get the heartbeat back
                 self.BPM = 0

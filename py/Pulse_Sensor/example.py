@@ -40,6 +40,9 @@ client = udp_client.UDPClient(args.ip, args.port)
 p = Pulsesensor()
 p.startAsyncBPM()
 
+p2 = Pulsesensor(channel=1)
+p2.startAsyncBPM()
+
 ## setup neo pixels
 pixels = neopixel.NeoPixel(board.D18, 8)
 ## Regular led
@@ -59,13 +62,10 @@ START_TIME = time.time()
 slowPrint = True
 printInterval = 3
 
-
-redX = 0
-minRA = 0
+MAX_SYNC = 80
 def loop():
     global slowPrint
-    global redX
-    global minRA
+
 
 
     runtime = (time.time() - START_TIME);
@@ -79,24 +79,29 @@ def loop():
         bundle = osc_bundle_builder.OscBundleBuilder(osc_bundle_builder.IMMEDIATELY)
         msg = osc_message_builder.OscMessageBuilder(address="/hrm")
 
+        beatDiff = abs(p2.lastBeatTime - p.lastBeatTime)
+        multiplier = (MAX_SYNC - beatDiff)/ MAX_SYNC
+        if multiplier < 0:
+            multiplier = 0
+
         msg.add_arg(p.normal)
         bundle.add_content(msg.build())
-        msg.add_arg(p.ampMin)
+        msg.add_arg(p2.normal)
         bundle.add_content(msg.build())
-        msg.add_arg(p.led)
-        bundle.add_content(msg.build())
-        msg.add_arg(p.longAverage)
-        bundle.add_content(msg.build())
+        # msg.add_arg(p.led)
+        # bundle.add_content(msg.build())
+        # msg.add_arg(p.longAverage)
+        # bundle.add_content(msg.build())
 
         client.send(bundle.build())
 
-        pixels.fill((int(p.led*255),0,0))
+        pixels.fill((int(( (p.led * p2.led)*multiplier )*255),0,0))
         pixels.show()
 
-        # print("normal: ", p.normal, "  longAverage: ", p.longAverage)
+        print("diff: ", beatDiff )
         if runtime%1 <= 0.1 and slowPrint:
             slowPrint = False
-            print("BPM: %d " % bpm )
+            print("BPM: %d " % p2.BPM )
         elif runtime%1 > 0.1:
             slowPrint = True
 
@@ -112,6 +117,7 @@ def exit():
     pixels.fill((0,0,0))
     pixels.show()
     p.stopAsyncBPM()
+    p2.stopAsyncBPM()
 
 def map( x,  in_min,  in_max,  out_min,  out_max):
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -128,7 +134,7 @@ if __name__ == "__main__":
             loop()
     except KeyboardInterrupt:
         exit()
-        pass
+
 
 
 """
