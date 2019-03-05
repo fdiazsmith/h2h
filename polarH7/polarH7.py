@@ -73,7 +73,7 @@ class AnyDevice(gatt.Device):
         elif characteristic.uuid == self._UUID_CHARACTER_HR_MEASURE:
             # TODO: There is much more information. See example code.
             print("\t\t\traw ", value )
-            print("HR Rec:", value[1], "rr?: ", value[2] )
+            print("HR Rec:", value[1], "rr?: ", chr(value[2])  )
             for v in value:
                 print("\t ", '{:f}'.format(v) )
             self.send(value[1])

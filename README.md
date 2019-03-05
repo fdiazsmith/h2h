@@ -1,7 +1,7 @@
 # <3^2
 para lola
 
-
+[useful graphic](https://imotions.com/blog/measuring-the-heart-how-does-ecg-and-ppg-work/)
 
 ## links
 [measuring heart beats in the raspberry pi](https://tutorials-raspberrypi.com/raspberry-pi-heartbeat-pulse-measuring/)
