@@ -14,7 +14,7 @@ class fHR {
   color backgroundColor = color(255);
 
 
-  int bpm = 40;
+  int bpm = 60;
   int MINUTE = 60000;
   float IBI = MINUTE/bpm;
   float fakeSignal = 0;
@@ -61,7 +61,7 @@ class fHR {
    * sets the inter beat interval, based on current beats per minute received
    */
   void setBPM( int _bpm) {
-    
+    println("incoming beat ", _bpm);
     bpm =  _bpm;
     ibi = MINUTE/bpm;
   }
@@ -85,7 +85,7 @@ class fHR {
     stroke(255);      // trace colour
 
     float s  = fakeSignal();
-    // background(s*255, 20, 20);
+    background(s*255, 20, 20);
 
     int yPos;
     stroke(255);

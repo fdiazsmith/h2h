@@ -72,7 +72,7 @@ void oscEvent(OscMessage theOscMessage) {
 
   // Analogue input values
   if (addrPattern.equals(ADDRESS)) {
-
+    // println(theOscMessage.get(0).intValue() );
     fhr.setBPM(theOscMessage.get(0).intValue());  // fhr.analogInputs[i] = theOscMessage.get(i).floatValue();
 
   }
