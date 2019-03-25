@@ -1,5 +1,37 @@
 # <3^2
+
+
 para lola
+
+
+# The Basics
+
+To run, open your 'Terminal' app and log into the Pi.
+```bash
+shh pi@raspberrypi.local
+```
+Enter the password when prompted, you should know it ;).
+Once logged in to the Pi. Move into the Heart Rate example.
+
+```bash
+cd h2h/py/Pulse_Sensor
+```
+This will take you the heart sensor program.
+to run it type the following, replacing the xx with your computer ip.
+```bash
+sudo python3 example --ip xx.xx.xx.xx
+```
+for the IP, open up network preferences and look for this.
+
+![ip](./Assets/Ip.png)
+
+## How to update
+
+go to the `h2h` folder, and type the following.
+```bash
+git pull
+```
+
 
 [useful graphic](https://imotions.com/blog/measuring-the-heart-how-does-ecg-and-ppg-work/)
 
